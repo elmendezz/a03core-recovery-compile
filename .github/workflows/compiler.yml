@@ -6,7 +6,7 @@ on:
       recovery_type:
         description: 'Selecciona qué recovery compilar'
         required: true
-        default: 'orangefox'
+        default: 'twrp'
         type: choice
         options:
         - twrp
@@ -22,14 +22,14 @@ jobs:
     timeout-minutes: 120 
 
     steps:
-    #- name: Limpiar espacio en disco (Optimizado)
-    #  uses: jlumbroso/free-disk-space@v1.3.1
-     # with:
-       # tool-cache: true
-       # android: true
-       #dotnet: true
-       # haskell: true
-       # swap: true
+    # - name: Limpiar espacio en disco (Optimizado)
+    #   uses: jlumbroso/free-disk-space@v1.3.1
+    #   with:
+    #     tool-cache: true
+    #     android: true
+    #     dotnet: true
+    #     haskell: true
+    #     swap: true
 
     - name: Configurar Java 8
       uses: actions/setup-java@v4
@@ -57,7 +57,8 @@ jobs:
         cd ~/work
         
         if [ "${{ github.event.inputs.recovery_type }}" == "twrp" ]; then
-          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-11
+          # Actualizado a twrp-12.1 para coincidir con tu device tree
+          repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-12.1
         else
           # OrangeFox Sync
           git clone https://gitlab.com/OrangeFox/sync.git
@@ -77,7 +78,9 @@ jobs:
         fi
         
         cd $ROOT_DIR
-        git clone https://github.com/elmendezz/a03core-a32f-recovery-tree device/samsung/a3core
+        
+        # Clonando el nuevo repositorio en la rama twrp-12
+        git clone -b twrp-12 https://github.com/Ridhoardhiansyah7/android_device_samsung_a3core device/samsung/a3core
         
         # --- FIX: OTORGAR PERMISOS DE EJECUCIÓN ---
         echo "Corrigiendo permisos de binarios en el device tree..."
@@ -91,6 +94,10 @@ jobs:
           source build/envsetup.sh
           lunch twrp_a3core-eng
           make clean && make recoveryimage -j$(nproc --all)
+          
+          # Crear un ZIP empaquetando el recovery.img generado
+          cd out/target/product/a3core
+          zip TWRP-a3core.zip recovery.img
         else
           cd ~/work/fox_11.0
           export ALLOW_MISSING_DEPENDENCIES=true
@@ -104,12 +111,17 @@ jobs:
           mka recoveryimage FOX_VERSION="R11.1" OF_MAINTAINER="elmendezz" -j$(nproc --all)
         fi
 
-    - name: Subir Artifact (Si es TWRP)
-      if: github.event.inputs.recovery_type == 'twrp'
-      uses: actions/upload-artifact@v4
+    - name: Publicar Release (Si es TWRP)
+      if: github.event.inputs.recovery_type == 'twrp' && success()
+      uses: softprops/action-gh-release@v2
       with:
-        name: TWRP-a3core
-        path: ~/work/out/target/product/a3core/recovery.img
+        tag_name: twrp-a3core-${{ github.run_number }}
+        name: TWRP Recovery A03 Core
+        files: |
+          ~/work/out/target/product/a3core/TWRP-a3core.zip
+          ~/work/out/target/product/a3core/recovery.img
+      env:
+        GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
 
     - name: Publicar Release (Si es OrangeFox)
       if: github.event.inputs.recovery_type == 'orangefox' && success()
