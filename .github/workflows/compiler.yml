@@ -22,14 +22,14 @@ jobs:
     timeout-minutes: 120 
 
     steps:
-    - name: Limpiar espacio en disco (Optimizado)
-      uses: jlumbroso/free-disk-space@v1.3.1
-      with:
-        tool-cache: true
-        android: true
-        dotnet: true
-        haskell: true
-        swap: true
+    #- name: Limpiar espacio en disco (Optimizado)
+    #  uses: jlumbroso/free-disk-space@v1.3.1
+     # with:
+       # tool-cache: true
+       # android: true
+       #dotnet: true
+       # haskell: true
+       # swap: true
 
     - name: Configurar Java 8
       uses: actions/setup-java@v4
