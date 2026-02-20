@@ -68,7 +68,7 @@ jobs:
         
         repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
-        - name: Clonar Device Tree
+    - name: Clonar Device Tree
       run: |
         if [ "${{ github.event.inputs.recovery_type }}" == "twrp" ]; then
           ROOT_DIR=~/work
@@ -82,7 +82,6 @@ jobs:
         # --- FIX: OTORGAR PERMISOS DE EJECUCIÓN ---
         echo "Corrigiendo permisos de binarios en el device tree..."
         chmod -R +x device/samsung/a3core/
-
 
     - name: Compilar Recovery
       run: |
