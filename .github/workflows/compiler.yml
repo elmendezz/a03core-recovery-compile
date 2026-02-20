@@ -80,7 +80,7 @@ jobs:
         cd $ROOT_DIR
         
         # Clonando el nuevo repositorio en la rama twrp-12
-        git clone -b twrp-12 https://github.com/Ridhoardhiansyah7/android_device_samsung_a3core device/samsung/a3core
+        git clone -b android-12 https://github.com/Ridhoardhiansyah7/android_device_samsung_a3core device/samsung/a3core
         
         # --- FIX: OTORGAR PERMISOS DE EJECUCIÓN ---
         echo "Corrigiendo permisos de binarios en el device tree..."
