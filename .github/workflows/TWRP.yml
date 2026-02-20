@@ -54,7 +54,7 @@ jobs:
       run: |
         cd ~/twrp
         # Actualizado para usar tu repositorio (elmendezz) en lugar del original
-        git clone https://github.com/elmendezz/twrp_device_samsung_a3core device/samsung/a3core
+        git clone https://github.com/elmendezz/android_device_samsung_a3core device/samsung/a3core
 
     - name: Compilar Recovery
       run: |
