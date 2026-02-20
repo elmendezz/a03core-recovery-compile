@@ -5,6 +5,7 @@ on:
 
 jobs:
   build:
+    name: Build TWRP
     runs-on: ubuntu-22.04 
     
     steps:
@@ -17,7 +18,6 @@ jobs:
     - name: Configurar entorno
       uses: actions/checkout@v4
 
-    # SOLUCIÓN AL ERROR DE COMPILACIÓN: Forzamos el uso de Java 8
     - name: Configurar Java 8
       uses: actions/setup-java@v4
       with:
@@ -27,7 +27,6 @@ jobs:
     - name: Instalar dependencias
       run: |
         sudo apt-get update
-        # Añadimos libncurses5 explicitamente para arreglar el error de clang
         sudo apt-get install -y bc build-essential zip curl libc6-dev libncurses5 libncurses5-dev libssl-dev x11proto-core-dev libx11-dev libgl1-mesa-dev g++-multilib libxml2-utils xsltproc unzip python2 rsync
         
         # Engañamos al PATH para que 'python' abra Python 2
@@ -35,10 +34,9 @@ jobs:
         ln -s /usr/bin/python2 $HOME/bin/python
         echo "$HOME/bin" >> $GITHUB_PATH
         
-    - name: Configurar repo y sincronizar TWRP 8.1
+    - name: Configurar repo y sincronizar TWRP 11
       run: |
-        # Añadido -v (verbose) a curl para ver información de depuración
-        sudo curl -vL https://storage.googleapis.com/git-repo-downloads/repo -o /usr/local/bin/repo
+        sudo curl -L https://storage.googleapis.com/git-repo-downloads/repo -o /usr/local/bin/repo
         sudo chmod a+rx /usr/local/bin/repo
         
         mkdir ~/twrp
@@ -47,27 +45,29 @@ jobs:
         git config --global user.name "GitHub Action"
         git config --global user.email "action@github.com"
         
-        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_omni.git -b twrp-11
+        # Cambiado a manifest_twrp_aosp (Recomendado para TWRP 11)
+        repo init --depth=1 -u https://github.com/minimal-manifest-twrp/platform_manifest_twrp_aosp.git -b twrp-11
         
-        # Añadido --verbose para más detalles de la descarga y forzando todos los núcleos
-        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags --verbose
+        repo sync -c -j$(nproc --all) --force-sync --no-clone-bundle --no-tags
 
-    - name: Clonar Árbol del Dispositivo (Pettyl)
+    - name: Clonar Árbol del Dispositivo (a3core)
       run: |
         cd ~/twrp
-        git clone https://github.com/almondnguyen/twrp_device_samsung_a3core device/samsung/a3core
+        # Actualizado para usar tu repositorio (elmendezz) en lugar del original
+        git clone https://github.com/elmendezz/twrp_device_samsung_a3core device/samsung/a3core
 
-    - name: Compilar Recovery (Explotando todos los núcleos)
+    - name: Compilar Recovery
       run: |
         cd ~/twrp
         export ALLOW_MISSING_DEPENDENCIES=true
         source build/envsetup.sh
-        lunch omni_pettyl-eng
-        # $(nproc --all) garantiza el uso absoluto de todos los núcleos disponibles
+        
+        # CORRECCIÓN: El target debe ser twrp_a3core-eng (o omni_a3core-eng), no pettyl
+        lunch twrp_a3core-eng
         make recoveryimage -j$(nproc --all)
 
     - name: Subir Artifact
       uses: actions/upload-artifact@v4
       with:
-        name: TWRP-11
+        name: TWRP-a3core
         path: ~/twrp/out/target/product/a3core/recovery.img
