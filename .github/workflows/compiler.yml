@@ -77,7 +77,7 @@ jobs:
         fi
         
         cd $ROOT_DIR
-        git clone https://github.com/elmendezz/android_device_samsung_a3core device/samsung/a3core
+        git clone https://github.com/elmendezz/a03core-a32f-recovery-tree device/samsung/a3core
         
         # --- FIX: OTORGAR PERMISOS DE EJECUCIÓN ---
         echo "Corrigiendo permisos de binarios en el device tree..."
